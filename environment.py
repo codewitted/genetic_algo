@@ -1,4 +1,4 @@
-# dirtyEnvironment.py
+# environment.py
 #
 # Code to display information about the game in a window.
 #
@@ -10,34 +10,37 @@
 # Last Modified: 01/02/24
 
 from utils import Pose
-from graphics import *
-import config
+import config  # Import config first to avoid partial initialization issues
 
 class Environment():
 
-    def __init__(self, game, windowName = "World"):
+    def __init__(self, game, windowName="World"):
+        print("Environment initialized")
+
+        # Import graphics here to avoid circular import issues
+        from graphics import GraphWin, Rectangle, Line, Image, Point
+
         # Make a copy of the world an attribute, so that the graphics
         # have access.
         self.gameWorld = game
 
-        # How many pixels the grid if offset in the window
+        # How many pixels the grid is offset in the window
         self.offset = 10
-        
+
         # How many pixels correspond to each coordinate.
-        #
-        # This works with the current images. any smaller and the
-        # images will not fit in the grid.
-        self.magnify = 55
+        self.magnify = 55  # Any smaller, and the images won't fit
 
         # How big to make "characters" when not using images
         self.cSize = 0.4
 
-        # How big to make objects when not using images.
+        # How big to make objects when not using images
         self.oSize = 0.6
 
         # Setup window and draw objects
-        self.pane = GraphWin(windowName, ((2*self.offset)+((self.gameWorld.maxX+1)*self.magnify)), ((2*self.offset)+((self.gameWorld.maxY+1)*self.magnify)))
+        self.pane = GraphWin(windowName, ((2 * self.offset) + ((self.gameWorld.maxX + 1) * self.magnify)),
+                             ((2 * self.offset) + ((self.gameWorld.maxY + 1) * self.magnify)))
         self.pane.setBackground("white")
+
         self.drawBoundary()
         self.drawGrid()
         self.drawQueens()
@@ -45,24 +48,23 @@ class Environment():
     #
     # Draw the world
     #
-    
-    # Put a box around the world
+
     def drawBoundary(self):
-        rect = Rectangle(self.convert(0, 0), self.convert(self.gameWorld.maxX+1, self.gameWorld.maxY+1))
+        from graphics import Rectangle, Point  # Import inside function
+
+        rect = Rectangle(self.convert(0, 0), self.convert(self.gameWorld.maxX + 1, self.gameWorld.maxY + 1))
         rect.draw(self.pane)
 
-    # Draw gridlines, to visualise the coordinates.
     def drawGrid(self):
+        from graphics import Line  # Import inside function
+
         # Vertical lines
-        vLines = []
-        for i in range(self.gameWorld.maxX+1):
-            vLines.append(Line(self.convert(i, 0), self.convert(i, self.gameWorld.maxY+1)))
+        vLines = [Line(self.convert(i, 0), self.convert(i, self.gameWorld.maxY + 1)) for i in range(self.gameWorld.maxX + 1)]
         for line in vLines:
             line.draw(self.pane)
+
         # Horizontal lines
-        hLines = []
-        for i in range(self.gameWorld.maxY + 1):
-            hLines.append(Line(self.convert(0, i), self.convert(self.gameWorld.maxX+1, i)))
+        hLines = [Line(self.convert(0, i), self.convert(self.gameWorld.maxX + 1, i)) for i in range(self.gameWorld.maxY + 1)]
         for line in hLines:
             line.draw(self.pane)
 
@@ -70,34 +72,31 @@ class Environment():
     # Draw the agents
     #
 
-    # We either use an image of the Queen
     def drawQueens(self):
+        from graphics import Image  # Import inside function
+
         self.queens = []
         for i in range(len(self.gameWorld.queenLocations)):
-            self.queens.append( Image(self.convert2(self.gameWorld.queenLocations[i].x, self.gameWorld.queenLocations[i].y), "images/queen.png") ) 
-            self.queens[i].draw(self.pane)
+            queen_image = Image(self.convert2(self.gameWorld.queenLocations[i].x, self.gameWorld.queenLocations[i].y), "images/queen.png")
+            queen_image.draw(self.pane)
+            self.queens.append(queen_image)
 
     def update(self):
-        for q in self.queens: 
+        for q in self.queens:
             q.undraw()
         self.drawQueens()
 
-    # Take x and y coordinates and transform them for using offset and
-    # magnify.
     #
-    # This conversion works for the lines. 
-    def convert(self, x, y):
-        newX = self.offset + (x * self.magnify)
-        newY = self.offset + (y * self.magnify)
-        return Point(newX, newY)
+    # Coordinate transformations
+    #
 
-    # Take x and y coordinates and transform them for using offset and
-    # magnify.
-    #
-    # This conversion works for objects, returning the centre of the
-    # relevant grid square.
-    def convert2(self, x ,y):
-        newX = (self.offset + 0.5*self.magnify) + (x * self.magnify)
-        newY = (self.offset + 0.5*self.magnify) + (y * self.magnify)
-        return Point(newX, newY)
-    
+    def convert(self, x, y):
+        """Convert grid coordinates to window coordinates."""
+        from graphics import Point  # Import inside function
+        return Point(self.offset + (x * self.magnify), self.offset + (y * self.magnify))
+
+    def convert2(self, x, y):
+        """Convert grid coordinates to window coordinates (center of grid square)."""
+        from graphics import Point  # Import inside function
+        return Point((self.offset + 0.5 * self.magnify) + (x * self.magnify),
+                     (self.offset + 0.5 * self.magnify) + (y * self.magnify))

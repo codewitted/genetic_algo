@@ -26,6 +26,10 @@ def displayGAIndividual(individual, name):
     ga = GA(gameWorld)
     print(ga.calculateFitness(individual))
 
+def get_environment():
+    from environment import Environment  # Deferred import
+    return Environment
+
 
 
 if config.mode == config.MODE.SELECTION_TEST: 
